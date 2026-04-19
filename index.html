@@ -2,28 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PAPERFORM // OPTICAL AUDIO SYSTEM</title>
+    <title>PAPERFORM // OPTICAL MEDIA STATION</title>
     
     <style>
-        :root { --p-green: #00ff41; --p-black: #0a0a0a; --p-gray: #1a1a1a; --p-text: #d1d1d1; }
+        :root { --p-green: #00ff41; --p-black: #0a0a0a; --p-gray: #1a1a1c; --p-text: #d1d1d1; --accent: #00e5ff; }
         body { background: var(--p-black); color: var(--p-text); font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        #sidebar { width: 320px; background: var(--p-gray); border-right: 1px solid #333; padding: 25px; display: flex; flex-direction: column; }
-        #viewer { flex-grow: 1; display: flex; flex-direction: column; background: #050505; position: relative; }
+        #sidebar { width: 340px; background: var(--p-gray); border-right: 1px solid #333; padding: 25px; display: flex; flex-direction: column; overflow-y: auto; }
+        #viewer { flex-grow: 1; display: flex; flex-direction: column; background: #050505; position: relative; justify-content: center; align-items: center; padding: 20px; }
         
-        .header { border-bottom: 1px solid var(--p-green); padding-bottom: 10px; margin-bottom: 30px; }
+        .header { border-bottom: 1px solid var(--p-green); padding-bottom: 10px; margin-bottom: 25px; }
         .header h1 { color: var(--p-green); font-size: 1.2rem; margin: 0; letter-spacing: 4px; }
         
-        .module { background: #222; border: 1px solid #333; border-radius: 4px; padding: 15px; margin-bottom: 20px; }
-        .module h3 { font-size: 0.7rem; color: #666; margin-top: 0; text-transform: uppercase; }
+        .module { background: #222; border: 1px solid #333; border-radius: 4px; padding: 15px; margin-bottom: 15px; }
+        .module h3 { font-size: 0.7rem; color: #888; margin-top: 0; text-transform: uppercase; margin-bottom: 10px; }
         
-        .btn-p { background: var(--p-green); color: black; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; border-radius: 2px; }
-        .btn-p:hover { background: #00cc33; }
+        select, input[type="file"] { background: #111; color: var(--p-green); border: 1px solid #444; width: 100%; padding: 5px; margin-bottom: 10px; font-size: 0.7rem; }
         
-        canvas { flex-grow: 1; object-fit: contain; cursor: crosshair; }
-        #console { height: 120px; background: #000; border-top: 1px solid #333; padding: 15px; color: var(--p-green); font-size: 0.8rem; overflow-y: auto; }
+        .btn-p { background: var(--p-green); color: black; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 5px; border-radius: 2px; text-transform: uppercase; }
+        .btn-p:hover { filter: brightness(1.2); }
+        .btn-alt { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+        
+        canvas { max-height: 100%; max-width: 100%; box-shadow: 0 0 30px rgba(0,0,0,0.5); background: white; image-rendering: auto; }
+        #console { height: 100px; background: #000; border-top: 1px solid #333; padding: 15px; color: var(--p-green); font-size: 0.75rem; overflow-y: auto; width: 100%; box-sizing: border-box; }
 
-        @media print { .no-print { display: none; } body { background: white; } canvas { width: 100%; } }
+        @media print { .no-print { display: none; } body { background: white; display: block; } #viewer { padding: 0; } canvas { width: 100%; height: auto; box-shadow: none; } }
     </style>
 </head>
 <body>
@@ -32,32 +35,45 @@
         <div class="header"><h1>PAPERFORM</h1></div>
         
         <div class="module">
-            <h3>Encoder Unit</h3>
-            <input type="file" id="audioLoad" accept="audio/*" style="font-size: 0.6rem;">
-            <button class="btn-p" id="encodeTrigger">GENERATE WAVE</button>
+            <h3>1. Format Settings</h3>
+            <select id="paperSize">
+                <option value="a4">A4 (210 x 297mm)</option>
+                <option value="letter">Letter (8.5 x 11in)</option>
+            </select>
         </div>
 
         <div class="module">
-            <h3>Decoder Unit</h3>
-            <input type="file" id="imageLoad" accept="image/*" style="font-size: 0.6rem;">
-            <button class="btn-p" style="background: transparent; border: 1px solid var(--p-green); color: var(--p-green);" id="decodeTrigger">SCAN FORM</button>
+            <h3>2. Encoder Unit</h3>
+            <input type="file" id="audioLoad" accept="audio/*">
+            <button class="btn-p" id="encodeTrigger">Process to Form</button>
         </div>
 
-        <button class="btn-p" style="background: white;" onclick="window.print()">PRINT TO A4/LETTER</button>
-        <div style="margin-top: auto; font-size: 0.6rem; color: #444;">VER: 1.0.4 // PASSIC_NJ_USA</div>
+        <div class="module">
+            <h3>3. Decoder Unit</h3>
+            <input type="file" id="imageLoad" accept="image/*">
+            <button class="btn-p btn-alt" id="decodeTrigger">Scan Image</button>
+        </div>
+
+        <div class="module">
+            <h3>4. Output Factory</h3>
+            <button class="btn-p" style="background: #eee;" onclick="window.print()">Save as PDF / Print</button>
+            <button class="btn-p" style="background: #bbb;" id="downloadPNG">Download PNG</button>
+        </div>
+
+        <div style="margin-top: auto; font-size: 0.6rem; color: #444;">PAPERFORM // REL 1.1.0</div>
     </aside>
 
     <main id="viewer">
         <canvas id="output"></canvas>
-        <div id="console">>> SYSTEM INITIALIZED. AWAITING INPUT...</div>
+        <div id="console" class="no-print">>> SYSTEM READY. STANDBY FOR INPUT...</div>
     </main>
 
     <script>
         /**
-         * Interface and Type definitions simulated for a single-file environment.
-         * This section handles the data structures and class definitions.
+         * Structural Class Definitions
+         * Handles the state management of the PaperForm application.
          */
-        class PaperFormEngine {
+        class PaperFormApp {
             constructor() {
                 this.canvas = document.getElementById('output');
                 this.ctx = this.canvas.getContext('2d');
@@ -67,28 +83,41 @@
 
             log(msg) {
                 const con = document.getElementById('console');
-                con.innerHTML += `<br>>> ${msg}`;
+                con.innerHTML += `<br>>> ${msg.toUpperCase()}`;
                 con.scrollTop = con.scrollHeight;
             }
+
+            // Sets dimensions based on paper selection at 300 DPI
+            setPaperMetrics(type) {
+                if (type === 'a4') {
+                    this.canvas.width = 2480;
+                    this.canvas.height = 3508;
+                } else {
+                    this.canvas.width = 2550;
+                    this.canvas.height = 3300;
+                }
+            }
         }
-        const pf = new PaperFormEngine();
+        const pf = new PaperFormApp();
     </script>
 
     <script>
         /**
-         * Functional JS handles the heavy lifting and event listeners.
+         * Operational Logic
+         * Handles the File I/O, Canvas rendering, and PNG generation.
          */
         document.getElementById('encodeTrigger').addEventListener('click', async () => {
             const file = document.getElementById('audioLoad').files[0];
-            if (!file) return pf.log("ERROR: NO AUDIO LOADED");
+            if (!file) return pf.log("Error: Select audio file");
 
-            pf.log("DECODING PCM DATA...");
+            pf.log(`Encoding ${file.name}...`);
+            const paperType = document.getElementById('paperSize').value;
+            pf.setPaperMetrics(paperType);
+
             const buffer = await pf.audioCtx.decodeAudioData(await file.arrayBuffer());
             const raw = buffer.getChannelData(0);
 
-            // Setting canvas for high-density Variable Area print
-            pf.canvas.width = 1600;
-            pf.canvas.height = 3200;
+            // Render Variable Area Track
             pf.ctx.fillStyle = "white";
             pf.ctx.fillRect(0, 0, pf.canvas.width, pf.canvas.height);
             pf.ctx.fillStyle = "black";
@@ -96,15 +125,15 @@
             const step = Math.floor(raw.length / pf.canvas.height);
             for (let i = 0; i < pf.canvas.height; i++) {
                 const amp = Math.abs(raw[i * step] || 0);
-                const w = amp * (pf.canvas.width / 2);
+                const w = amp * (pf.canvas.width / 2.2);
                 pf.ctx.fillRect((pf.canvas.width / 2) - w, i, w * 2, 1);
             }
-            pf.log("PAPERFORM GENERATED. READY FOR PRINT.");
+            pf.log(`Form Generated: ${paperType.toUpperCase()} Geometry.`);
         });
 
         document.getElementById('decodeTrigger').addEventListener('click', () => {
             const file = document.getElementById('imageLoad').files[0];
-            if (!file) return pf.log("ERROR: NO IMAGE LOADED");
+            if (!file) return pf.log("Error: Load image first");
 
             const img = new Image();
             img.src = URL.createObjectURL(file);
@@ -113,27 +142,34 @@
                 pf.canvas.height = img.height;
                 pf.ctx.drawImage(img, 0, 0);
                 
-                pf.log("COMMENCING OPTICAL SCAN...");
                 const imgData = pf.ctx.getImageData(0, 0, pf.canvas.width, pf.canvas.height);
                 const samples = new Float32Array(pf.canvas.height);
 
                 for (let y = 0; y < pf.canvas.height; y++) {
-                    let density = 0;
+                    let darkCount = 0;
                     for (let x = 0; x < pf.canvas.width; x++) {
                         const idx = (y * pf.canvas.width + x) * 4;
-                        if (imgData.data[idx] < 127) density++;
+                        if (imgData.data[idx] < 127) darkCount++;
                     }
-                    samples[y] = (density / pf.canvas.width) * 2 - 1;
+                    samples[y] = (darkCount / pf.canvas.width) * 2 - 1;
                 }
 
                 const track = pf.audioCtx.createBuffer(1, samples.length, pf.bitrate);
                 track.getChannelData(0).set(samples);
-                const node = pf.audioCtx.createBufferSource();
-                node.buffer = track;
-                node.connect(pf.audioCtx.destination);
-                node.start();
-                pf.log("PLAYBACK ACTIVE.");
+                const source = pf.audioCtx.createBufferSource();
+                source.buffer = track;
+                source.connect(pf.audioCtx.destination);
+                source.start();
+                pf.log("Playback sequence initiated.");
             };
+        });
+
+        document.getElementById('downloadPNG').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `paperform_${Date.now()}.png`;
+            link.href = pf.canvas.toDataURL();
+            link.click();
+            pf.log("Exporting PNG file...");
         });
     </script>
 </body>
