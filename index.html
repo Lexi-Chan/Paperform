@@ -45,6 +45,10 @@
         .switch-btn.active-analog { background: var(--neon-green); color: #000; border-color: var(--neon-green); }
         .switch-btn.active-digital { background: var(--neon-red); color: #fff; border-color: var(--neon-red); }
 
+        /* GitHub Link Hover Effect */
+        .gh-link { display: block; margin-top: 15px; padding: 10px; border: 1px dashed var(--border); color: var(--accent); text-decoration: none; font-weight: bold; letter-spacing: 1px; transition: 0.2s; border-radius: 4px; background: #09090b; }
+        .gh-link:hover { border-color: var(--accent); box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+
         @media print { .no-print { display: none; } body { background: white; display: block; } #viewer { padding: 0; } canvas { width: 100% !important; height: auto !important; box-shadow: none; } }
     </style>
 </head>
@@ -80,7 +84,10 @@
             <button class="btn-master btn-secondary" id="downloadPNG" style="margin-top: 8px;">EXPORT RAW PNG</button>
         </div>
 
-        <div style="margin-top: auto; font-size: 0.6rem; color: #555; text-align: center;">SYS_VER: 3.0.0 // HYBRID CORE</div>
+        <div style="margin-top: auto; font-size: 0.6rem; color: #555; text-align: center;">
+            <span>SYS_VER: 3.0.0 // HYBRID CORE</span>
+            <a href="https://lexi-chan.github.io/Paperform/decoder.html/" target="_blank" class="gh-link">>> LAUNCH DECODER APP</a>
+        </div>
     </aside>
 
     <main id="viewer">
@@ -190,6 +197,55 @@
                     app.ctx.fillRect(center - width, y, width * 2, 1);
                 }
                 app.log("ANALOG WAVEFORM GENERATED. READY FOR PRINT.");
+            } catch (e) {
+                app.log("CRITICAL ERROR: File is not valid audio for Analog mode.");
+            }
+        }
+
+        // --- CORE 2: DIGITAL BIT-MATRIX ENCODER ---
+        async function processDigital(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            
+            // 1. Draw Optical Sync Anchors (Red/Black corners)
+            app.ctx.fillStyle = "#ff0000"; app.ctx.fillRect(0, 0, 150, 150); // Top-Left Red
+            app.ctx.fillStyle = "#000000"; app.ctx.fillRect(app.canvas.width-150, 0, 150, 150); // Top-Right Black
+            app.ctx.fillStyle = "#000000"; app.ctx.fillRect(0, app.canvas.height-150, 150, 150); // Bottom-Left Black
+
+            // 2. Draw the Data Matrix
+            let x = 180, y = 180; 
+            const ds = app.dotSize;
+
+            for (let byte of bytes) {
+                for (let i = 7; i >= 0; i--) {
+                    const bit = (byte >> i) & 1;
+                    
+                    // The core digital rule: 1 = Red, 0 = Black
+                    app.ctx.fillStyle = (bit === 1) ? "#ff0000" : "#000000";
+                    app.ctx.fillRect(x, y, ds, ds);
+                    
+                    x += ds;
+                    if (x > app.canvas.width - 180) {
+                        x = 180;
+                        y += ds;
+                    }
+                }
+            }
+            app.log(`DIGITAL MATRIX COMPLETE. Encoded ${(bytes.length / 1024).toFixed(2)} KB of raw data.`);
+        }
+
+        // Output Utility
+        document.getElementById('downloadPNG').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `paperform_${app.mode}_${Date.now()}.png`;
+            link.href = app.canvas.toDataURL();
+            link.click();
+            app.log("RAW IMAGE EXPORTED TO LOCAL STORAGE.");
+        });
+    </script>
+</body>
+</html>
+              app.log("ANALOG WAVEFORM GENERATED. READY FOR PRINT.");
             } catch (e) {
                 app.log("CRITICAL ERROR: File is not valid audio for Analog mode.");
             }
